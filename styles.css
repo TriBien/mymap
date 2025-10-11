@@ -334,6 +334,12 @@ svg {
   background: #dc2626;
 }
 
+.node-circle.hold {
+  stroke: #38bdf8;
+  stroke-width: 3;
+}
+
+
 /* 📱 Mobile Optimization */
 /* --- Responsive Layout Switch --- */
 @media (max-width: 768px) {

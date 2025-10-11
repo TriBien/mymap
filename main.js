@@ -323,6 +323,29 @@ function render() {
       startEdit(node.id);
     });
 
+    // 🖐️ Long-press (for mobile edit)
+    let pressTimer;
+    g.addEventListener(
+      "touchstart",
+      (e) => {
+        circle.classList.add("hold");
+        pressTimer = setTimeout(() => {
+          startEdit(node.id);
+          circle.classList.remove("hold");
+        }, 600);
+      },
+      { passive: true }
+    );
+
+    g.addEventListener("touchend", () => {
+      clearTimeout(pressTimer);
+      circle.classList.remove("hold");
+    });
+    g.addEventListener("touchmove", () => {
+      clearTimeout(pressTimer);
+      circle.classList.remove("hold");
+    });
+
     svg.appendChild(g);
   });
 }
