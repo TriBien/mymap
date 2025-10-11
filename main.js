@@ -112,11 +112,13 @@ async function refreshMapsList() {
   const blankOpt = document.createElement("option");
   blankOpt.value = "";
   blankOpt.textContent = "-- Load saved map --";
+  blankOpt.style.color = "#000000ff";
   sel.appendChild(blankOpt);
   mapsCache.forEach((m) => {
     const opt = document.createElement("option");
     opt.value = m.id;
     opt.textContent = m.name + " • " + new Date(m.updatedAt).toLocaleString();
+    opt.style.color = "#000000ff";
     sel.appendChild(opt);
   });
 }
@@ -281,8 +283,8 @@ function render() {
     const icons = document.createElementNS("http://www.w3.org/2000/svg", "g");
     icons.setAttribute("class", "node-icons");
 
-    const iconOffset = radius - 14; // horizontal offset
-    const iconTop = -radius + 10; // vertical offset
+    const iconOffset = radius - 50; // horizontal offset
+    const iconTop = -radius + 5; // vertical offset
 
     icons.setAttribute("transform", `translate(${iconOffset},${iconTop})`);
 
@@ -290,21 +292,27 @@ function render() {
     icons.appendChild(
       makeIconGroup("+", ICON_SIZE, () => addChild(node.id), "add", 38)
     );
-    icons.appendChild(
-      makeIconGroup("del", ICON_SIZE, () => deleteNode(node.id), "del")
-    );
 
-    // collapse toggle (shows ➖ or ➕)
-    const type = node.collapsed ? "expand" : "collapse";
-    icons.appendChild(
-      makeIconGroup(
-        type,
-        ICON_SIZE,
-        () => toggleCollapse(node.id),
-        "collapse",
-        -38
-      )
-    );
+    // delete (not for root)
+    if (node.id !== currentMap.rootId) {
+      icons.appendChild(
+        makeIconGroup("del", ICON_SIZE, () => deleteNode(node.id), "del")
+      );
+    }
+
+    // collapse toggle (shows ➖ or ➕) for parents only
+    if (node.parent && node.children.length > 0) {
+      const type = node.collapsed ? "expand" : "collapse";
+      icons.appendChild(
+        makeIconGroup(
+          type,
+          ICON_SIZE,
+          () => toggleCollapse(node.id),
+          "collapse",
+          -38
+        )
+      );
+    }
 
     g.appendChild(icons);
 
@@ -403,7 +411,6 @@ function addChild(parentId) {
 async function deleteNode(nodeId) {
   if (!currentMap) return;
   if (nodeId === currentMap.rootId) {
-    alert("Cannot delete root node.");
     return;
   }
 
@@ -699,6 +706,36 @@ function showDeleteConfirm(title, message) {
     btnDelete.addEventListener("click", deleteHandler);
   });
 }
+
+// 📱 Mobile menu toggle
+const mobileMenuToggle = document.getElementById("mobileMenuToggle");
+const mobileMenuPanel = document.getElementById("mobileMenuPanel");
+
+mobileMenuToggle.addEventListener("click", () => {
+  const isOpen = mobileMenuPanel.classList.toggle("show");
+  mobileMenuToggle.textContent = isOpen ? "✕ Close" : "⚙️ Menu";
+});
+
+// Optional: close menu when selecting an option
+mobileMenuPanel.addEventListener("click", (e) => {
+  if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") {
+    mobileMenuPanel.classList.remove("show");
+    mobileMenuToggle.textContent = "⚙️ Menu";
+  }
+});
+
+document.getElementById("newMapBtnMobile").onclick = () =>
+  document.getElementById("newMapBtn").click();
+document.getElementById("saveMapBtnMobile").onclick = () =>
+  document.getElementById("saveMapBtn").click();
+document.getElementById("exportMapBtnMobile").onclick = () =>
+  document.getElementById("exportMapBtn").click();
+document.getElementById("importMapBtnMobile").onclick = () =>
+  document.getElementById("importMapBtn").click();
+document.getElementById("renameMapBtnMobile").onclick = () =>
+  document.getElementById("renameMapBtn").click();
+document.getElementById("deleteMapBtnMobile").onclick = () =>
+  document.getElementById("deleteMapBtn").click();
 
 (async function init() {
   await refreshMapsList();

@@ -2,7 +2,7 @@
   --bg: #0f1724;
   --panel: #0b1220;
   --accent: #06b6d4;
-  --muted: #9aa7b3;
+  --muted: #dfdfdf;
   --node-bg: #0ea5a3;
   --node-fg: #02111a;
   --node-radius: 58px;
@@ -20,30 +20,129 @@ body {
   color: #e6f0f3;
   overflow: hidden;
 }
-.topbar {
+
+/* 🌐 Toolbar base */
+.toolbar {
   position: fixed;
-  left: 12px;
-  top: 12px;
+  top: 10px;
+  left: 10px;
   z-index: 60;
+  color: #e2e8f0;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* --- Desktop Toolbar --- */
+.toolbar-desktop {
   background: rgba(2, 6, 23, 0.6);
   backdrop-filter: blur(6px);
-  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-items {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-.topbar button,
-.topbar select,
-.topbar input {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 6px 8px;
+
+.menu-items button,
+.menu-items select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
   border-radius: 6px;
-  color: var(--muted);
+  padding: 6px 10px;
   font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+
+.menu-items button:hover {
+  border-color: var(--accent, #06b6d4);
+  color: white;
+}
+
+.menu-items .danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+.menu-items .danger:hover {
+  background: rgba(248, 113, 113, 0.15);
+}
+
+/* --- Mobile Toolbar --- */
+.toolbar-mobile {
+  display: none;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 10px;
+  width: calc(100% - 20px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.menu-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Mobile Dropdown Menu --- */
+.mobile-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.mobile-menu.show {
+  max-height: 400px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobile-menu button,
+.mobile-menu select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.mobile-menu .danger {
+  color: #f87171;
+}
+
 .topbar button:hover {
   border-color: var(--accent);
   color: #fff;
@@ -133,10 +232,9 @@ svg {
   background: white;
   color: #222;
   z-index: 9999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   line-height: 1.3em;
 }
-
 
 .controls-group {
   display: flex;
@@ -168,11 +266,11 @@ svg {
 
 .modal-content {
   background: #0e1628;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 22px 28px;
   border-radius: 10px;
   width: 320px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
   text-align: center;
   color: #e2e8f0;
   transform: translateY(10px);
@@ -180,8 +278,14 @@ svg {
 }
 
 @keyframes popUp {
-  from { opacity: 0; transform: translateY(20px) scale(0.95); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .modal-content h2 {
@@ -203,7 +307,8 @@ svg {
   gap: 12px;
 }
 
-.btn-cancel, .btn-delete {
+.btn-cancel,
+.btn-delete {
   padding: 8px 16px;
   border-radius: 6px;
   border: none;
@@ -217,10 +322,28 @@ svg {
   background: #1e293b;
   color: #cbd5e1;
 }
-.btn-cancel:hover { background: #334155; }
+.btn-cancel:hover {
+  background: #334155;
+}
 
 .btn-delete {
   background: #ef4444;
   color: white;
 }
-.btn-delete:hover { background: #dc2626; }
+.btn-delete:hover {
+  background: #dc2626;
+}
+
+/* 📱 Mobile Optimization */
+/* --- Responsive Layout Switch --- */
+@media (max-width: 768px) {
+  .toolbar-desktop {
+    display: none;
+  }
+  .toolbar-mobile {
+    display: block;
+  }
+  .toolbar {
+    left: 120px
+  }
+}

@@ -37,30 +37,51 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="topbar">
-      <span class="map-name" id="currentMapName">Untitled</span>
-      <div class="controls-group">
-        <button id="newMapBtn" title="New mindmap">＋ New</button>
-        <button id="renameMapBtn" title="Rename">✏️ Rename</button>
-        <button id="saveMapBtn" title="Save mindmap">💾 Save</button>
-        <button id="exportMapBtn" title="Export JSON">⬇️ Export</button>
-        <button id="importMapBtn" title="Import JSON">📂 Import</button>
-        <input
-          type="file"
-          id="importMapFile"
-          accept=".json"
-          style="display: none"
-        />
-
-        <button id="deleteMapBtn" title="Delete map" style="color: #ff9b9b">
-          🗑 Delete
-        </button>
+    <!-- 🌐 Responsive Toolbar -->
+    <!-- 🌐 Responsive Toolbar -->
+    <div class="toolbar">
+      <!-- Desktop toolbar -->
+      <div class="toolbar-desktop">
+        <span id="currentMapName" class="map-name">Untitled</span>
+        <div class="menu-items">
+          <button id="newMapBtn">＋ New</button>
+          <button id="saveMapBtn">💾 Save</button>
+          <button id="exportMapBtn">⬇️ Export</button>
+          <button id="importMapBtn">📂 Import</button>
+          <input
+            type="file"
+            id="importMapFile"
+            accept=".json"
+            style="display: none"
+          />
+          <button id="renameMapBtn">✏️ Rename</button>
+          <button id="deleteMapBtn" class="danger">🗑 Delete</button>
+          <select id="mapsList" title="Load saved map"></select>
+        </div>
       </div>
-      <select
-        id="mapsList"
-        title="Load mindmap"
-        style="margin-left: 8px"
-      ></select>
+
+      <!-- Mobile toolbar -->
+      <div class="toolbar-mobile">
+        <div class="mobile-header">
+          <span id="currentMapNameMobile" class="map-name">Untitled</span>
+          <button id="mobileMenuToggle" class="menu-toggle">⚙️ Menu</button>
+        </div>
+        <div id="mobileMenuPanel" class="mobile-menu hidden">
+          <button id="newMapBtnMobile">＋ New</button>
+          <button id="saveMapBtnMobile">💾 Save</button>
+          <button id="exportMapBtnMobile">⬇️ Export</button>
+          <button id="importMapBtnMobile">📂 Import</button>
+          <input
+            type="file"
+            id="importMapFileMobile"
+            accept=".json"
+            style="display: none"
+          />
+          <button id="renameMapBtnMobile">✏️ Rename</button>
+          <button id="deleteMapBtnMobile" class="danger">🗑 Delete</button>
+          <select id="mapsListMobile" title="Load saved map"></select>
+        </div>
+      </div>
     </div>
 
     <div class="mindmap-wrap" id="wrap">
