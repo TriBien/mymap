@@ -1,17 +1,16 @@
 // service-worker.js
 const CACHE_NAME = "mymind-cache-v1";
 const ASSETS = [
-  "/", // root
-  "/index.html",
-  "/main.js",
-  "/styles.css",
-  "/icons/favicon.ico",
-  "/icons/favicon-16x16.png",
-  "/icons/favicon-32x32.png",
-  "/icons/apple-touch-icon.png",
-  "icons/android-chrome-192x192.png",
-  "/icons/android-chrome-512x512.png",
-  "/site.webmanifest",
+  "/mymap/index.html",
+  "/mymap/main.js",
+  "/mymap/styles.css",
+  "/mymap/icons/favicon.ico",
+  "/mymap/icons/favicon-16x16.png",
+  "/mymap/icons/favicon-32x32.png",
+  "/mymap/icons/apple-touch-icon.png",
+  "/mymap/icons/android-chrome-192x192.png",
+  "/mymap/icons/android-chrome-512x512.png",
+  "/mymap/site.webmanifest",
 ];
 
 // Install: cache essential files
