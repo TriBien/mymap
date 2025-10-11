@@ -1,0 +1,226 @@
+:root {
+  --bg: #0f1724;
+  --panel: #0b1220;
+  --accent: #06b6d4;
+  --muted: #9aa7b3;
+  --node-bg: #0ea5a3;
+  --node-fg: #02111a;
+  --node-radius: 58px;
+  --icon-size: 18px;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, Segoe UI, Roboto, system-ui, -apple-system, Helvetica,
+    Arial;
+}
+body {
+  background: linear-gradient(180deg, #071023 0%, #071b2b 100%);
+  color: #e6f0f3;
+  overflow: hidden;
+}
+.topbar {
+  position: fixed;
+  left: 12px;
+  top: 12px;
+  z-index: 60;
+  background: rgba(2, 6, 23, 0.6);
+  backdrop-filter: blur(6px);
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.topbar button,
+.topbar select,
+.topbar input {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.topbar button:hover {
+  border-color: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+.mindmap-wrap {
+  position: absolute;
+  inset: 0;
+}
+svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.node-g {
+  cursor: grab;
+  transition: transform 0.12s linear;
+}
+.node-circle {
+  fill: var(--node-bg);
+  stroke: rgba(0, 0, 0, 0.25);
+  stroke-width: 2;
+  filter: drop-shadow(0 6px 16px rgba(2, 6, 23, 0.6));
+}
+.node-text {
+  font-size: 14px;
+  font-family: sans-serif;
+  fill: #fff;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  white-space: pre-line;
+  user-select: none;
+}
+
+/* Hide node icons by default */
+.node-icons {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none; /* prevent hover area glitch */
+}
+
+/* Show icons when hovering over node group */
+.node-g:hover .node-icons {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.icon-bg {
+  fill: rgba(255, 255, 255, 0.06);
+}
+.icon-path {
+  fill: var(--muted);
+}
+.icon-btn:hover .icon-path {
+  fill: var(--accent);
+}
+.path-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.357);
+  stroke-width: 2.2;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.6));
+}
+.hidden .path-line {
+  display: none;
+}
+/* small floating tooltip for name */
+.map-name {
+  font-weight: 700;
+  font-size: 20px;
+  color: #fff;
+  margin-right: 6px;
+}
+
+/* editing input */
+.edit-textarea {
+  position: absolute;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: center;
+  border: 2px solid #4e9eff;
+  border-radius: 8px;
+  padding: 6px 8px;
+  resize: none;
+  outline: none;
+  background: white;
+  color: #222;
+  z-index: 9999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  line-height: 1.3em;
+}
+
+
+.controls-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.small {
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+/* --- Confirmation Modal --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+  transition: opacity 0.2s ease;
+}
+
+.modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-content {
+  background: #0e1628;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 22px 28px;
+  border-radius: 10px;
+  width: 320px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+  text-align: center;
+  color: #e2e8f0;
+  transform: translateY(10px);
+  animation: popUp 0.25s ease forwards;
+}
+
+@keyframes popUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-content h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #f87171;
+}
+
+.modal-content p {
+  margin-bottom: 18px;
+  font-size: 14px;
+  color: #cbd5e1;
+  line-height: 1.4em;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn-cancel, .btn-delete {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.btn-cancel {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+.btn-cancel:hover { background: #334155; }
+
+.btn-delete {
+  background: #ef4444;
+  color: white;
+}
+.btn-delete:hover { background: #dc2626; }
