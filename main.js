@@ -103,6 +103,8 @@ function screenCenter() {
 function setMapNameUI() {
   document.getElementById("currentMapName").textContent =
     currentMap?.name || "Untitled";
+  document.getElementById("currentMapNameMobile").textContent =
+    currentMap?.name || "Untitled";
 }
 
 async function refreshMapsList() {
