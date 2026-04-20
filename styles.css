@@ -47,6 +47,58 @@ body {
   background: radial-gradient(ellipse at 50% 0%, #ffffff 0%, #f5f5f5 70%);
 }
 
+/* Mobile Not Supported Overlay */
+.mobile-not-supported {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  overflow: auto;
+}
+
+.mobile-not-supported-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.mobile-not-supported h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--text);
+}
+
+.mobile-not-supported p {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin: 0 0 8px 0;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+/* Show mobile overlay on small screens */
+@media (max-width: 768px) {
+  .mobile-not-supported {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Hide main app content on mobile */
+  .toolbar,
+  .mindmap-wrap,
+  .modal,
+  .toast {
+    display: none !important;
+  }
+}
+
 /* Toolbar */
 .toolbar {
   position: fixed;
