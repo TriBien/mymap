@@ -639,7 +639,10 @@ function saveCurrentMapDebounced() {
 }
 async function loadMapById(id) {
   const rec = await idbGet(id);
-  if (!rec) return alert("Map not found");
+  if (!rec) {
+    showToast("Map not found");
+    return;
+  }
   currentMap = rec;
   ensureInitialPositions(rec);
   setMapNameUI();
@@ -661,16 +664,70 @@ document.addEventListener("click", (e) => {
   }
 });
 
+/* ---- Toast Notification ---- */
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  const toastMessage = document.getElementById("toastMessage");
+  toastMessage.textContent = message;
+  toast.classList.remove("hidden");
+  setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2500);
+}
+
+/* ---- Map Name Modal ---- */
+const mapNameModal = document.getElementById("mapNameModal");
+const mapNameInput = document.getElementById("mapNameInput");
+const mapNameTitle = document.getElementById("mapNameTitle");
+let mapNameCallback = null;
+
+function openMapNameModal(title, defaultValue, callback) {
+  mapNameTitle.textContent = title;
+  mapNameInput.value = defaultValue || "";
+  mapNameCallback = callback;
+  mapNameModal.classList.remove("hidden");
+  setTimeout(() => mapNameInput.focus(), 100);
+}
+
+document.getElementById("mapNameCancel").addEventListener("click", () => {
+  mapNameModal.classList.add("hidden");
+});
+
+document.getElementById("mapNameConfirm").addEventListener("click", () => {
+  const name = mapNameInput.value.trim() || "Untitled";
+  if (mapNameCallback) mapNameCallback(name);
+  mapNameModal.classList.add("hidden");
+});
+
+mapNameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    document.getElementById("mapNameConfirm").click();
+  } else if (e.key === "Escape") {
+    mapNameModal.classList.add("hidden");
+  }
+});
+
+mapNameModal.addEventListener("click", (e) => {
+  if (e.target === mapNameModal) {
+    mapNameModal.classList.add("hidden");
+  }
+});
+
 /* ---- UI wiring ---- */
 document.getElementById("newMapBtn").onclick = async () => {
-  const name = prompt("New map name", "Untitled") || "Untitled";
-  await newMap(name);
+  openMapNameModal("New Map", "Untitled", async (name) => {
+    await newMap(name);
+    showToast("Created successfully");
+  });
   moreMenu.classList.add("hidden");
 };
-document.getElementById("saveMapBtn").onclick = () => {
-  saveCurrentMap();
+
+document.getElementById("saveMapBtn").onclick = async () => {
+  await saveCurrentMap();
+  showToast("Saved successfully");
   moreMenu.classList.add("hidden");
 };
+
 document.getElementById("exportMapBtn").onclick = () => {
   const data = JSON.stringify(currentMap, null, 2);
   const blob = new Blob([data], { type: "application/json" });
@@ -679,14 +736,18 @@ document.getElementById("exportMapBtn").onclick = () => {
   a.download = (currentMap.name || "mindmap") + ".json";
   a.click();
   URL.revokeObjectURL(a.href);
+  showToast("Exported successfully");
   moreMenu.classList.add("hidden");
 };
+
 document.getElementById("renameMapBtn").onclick = async () => {
   if (!currentMap) return;
-  const n = prompt("Rename map", currentMap.name) || currentMap.name;
-  currentMap.name = n;
-  await saveCurrentMap();
-  setMapNameUI();
+  openMapNameModal("Rename Map", currentMap.name, async (name) => {
+    currentMap.name = name;
+    await saveCurrentMap();
+    setMapNameUI();
+    showToast("Renamed successfully");
+  });
   moreMenu.classList.add("hidden");
 };
 
@@ -775,7 +836,7 @@ importMapFile.addEventListener("change", async (e) => {
 
       // ✅ Validate basic structure
       if (!json.nodes || !json.rootId) {
-        alert("Invalid mindmap JSON format ❗");
+        showToast("Invalid format");
         return;
       }
 
@@ -793,9 +854,10 @@ importMapFile.addEventListener("change", async (e) => {
       render();
 
       await refreshMapsList();
+      showToast("Imported successfully");
     } catch (err) {
       console.error(err);
-      alert("Failed to import JSON: " + err.message);
+      showToast("Import failed");
     }
   };
 

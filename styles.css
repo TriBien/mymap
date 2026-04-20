@@ -494,6 +494,10 @@ svg {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
 
 .hidden { display: none !important; }
 
@@ -593,4 +597,66 @@ select:focus-visible {
 .color-close:hover {
   background: var(--surface-hover);
   color: var(--text);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px var(--shadow-color);
+}
+.toast:not(.hidden) {
+  animation: toastIn 0.25s ease;
+}
+.toast-icon {
+  flex-shrink: 0;
+  color: var(--accent);
+  width: 14px;
+  height: 14px;
+}
+
+/* Map Name Input Modal */
+.map-name-input {
+  width: 90%;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  margin: 16px 0;
+  outline: none;
+}
+.map-name-input:focus {
+  border-color: var(--accent);
+}
+.map-name-input::placeholder {
+  color: var(--text-muted);
+}
+
+.btn-confirm {
+  background: var(--accent);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-confirm:hover {
+  background: var(--accent-hover);
 }

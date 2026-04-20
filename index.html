@@ -123,6 +123,24 @@
       </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+      <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      <span id="toastMessage">Success</span>
+    </div>
+
+    <!-- Map Name Input Modal -->
+    <div id="mapNameModal" class="modal hidden">
+      <div class="modal-content">
+        <h2 id="mapNameTitle">New Map</h2>
+        <input type="text" id="mapNameInput" class="map-name-input" placeholder="Map name" />
+        <div class="modal-buttons">
+          <button id="mapNameCancel" class="btn-cancel">Cancel</button>
+          <button id="mapNameConfirm" class="btn-confirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+
     <script src="main.js"></script>
     <script>
       if ("serviceWorker" in navigator) {
