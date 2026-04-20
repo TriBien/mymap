@@ -94,6 +94,32 @@ const ICON_SIZE = 30;
 let mapsCache = [];
 let currentMap = null;
 let dragging = null;
+let selectedNodeId = null;
+
+const NODE_COLORS = [
+  "#1f1f1f", "#2d2d2d", "#3b82f6", "#10b981", "#f59e0b",
+  "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16",
+  "#f97316", "#6366f1", "#14b8a6", "#a855f7", "#e11d48"
+];
+
+const DEFAULT_NODE_COLOR = "#1f1f1f";
+
+function adjustColor(hex, amount) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+}
+
+function isDarkColor(hex) {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = num >> 16;
+  const g = (num >> 8) & 0xFF;
+  const b = num & 0xFF;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance < 0.5;
+}
 
 function screenCenter() {
   const rect = wrap.getBoundingClientRect();
@@ -109,20 +135,30 @@ function setMapNameUI() {
 
 async function refreshMapsList() {
   mapsCache = await idbGetAll();
-  const sel = document.getElementById("mapsList");
-  sel.innerHTML = "";
-  const blankOpt = document.createElement("option");
-  blankOpt.value = "";
-  blankOpt.textContent = "-- Load saved map --";
-  blankOpt.style.color = "#000000ff";
-  sel.appendChild(blankOpt);
-  mapsCache.forEach((m) => {
-    const opt = document.createElement("option");
-    opt.value = m.id;
-    opt.textContent = m.name + " • " + new Date(m.updatedAt).toLocaleString();
-    opt.style.color = "#000000ff";
-    sel.appendChild(opt);
-  });
+  
+  // Update desktop dropdown
+  const dropdownBtn = document.getElementById("mapsDropdownBtn");
+  const dropdownList = document.getElementById("mapsDropdownList");
+  if (dropdownList) {
+    dropdownList.innerHTML = "";
+    const item = document.createElement("button");
+    item.className = "maps-dropdown-item";
+    item.textContent = mapsCache.length > 0 ? "Select a map..." : "No saved maps";
+    item.addEventListener("click", () => {});
+    dropdownList.appendChild(item);
+    
+    mapsCache.sort((a, b) => b.updatedAt - a.updatedAt).forEach((m) => {
+      const btn = document.createElement("button");
+      btn.className = "maps-dropdown-item";
+      btn.textContent = m.name;
+      btn.addEventListener("click", async () => {
+        await loadMapById(m.id);
+        moreMenu.classList.add("hidden");
+        dropdownList.classList.add("hidden");
+      });
+      dropdownList.appendChild(btn);
+    });
+  }
 }
 
 function ensureInitialPositions(map) {
@@ -197,9 +233,15 @@ function render() {
     if (hidden) return;
 
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("class", "node-g");
+    g.setAttribute("class", "node-g" + (node.id === selectedNodeId ? " selected" : ""));
     g.setAttribute("transform", `translate(${node.x},${node.y})`);
     g.dataset.id = node.id;
+    
+    g.addEventListener("click", (e) => {
+      e.stopPropagation();
+      selectedNodeId = node.id;
+      render();
+    });
 
     // --- create circle and auto-fit text ---
     let radius = NODE_RADIUS;
@@ -211,6 +253,11 @@ function render() {
     );
     circle.setAttribute("r", radius);
     circle.setAttribute("class", "node-circle");
+    const nodeColor = node.color || DEFAULT_NODE_COLOR;
+    circle.style.fill = nodeColor;
+    const isNodeDark = isDarkColor(nodeColor);
+    const strokeColor = isNodeDark ? (document.documentElement.getAttribute('data-theme') === 'light' ? '#ddd' : '#444') : adjustColor(nodeColor, -40);
+    circle.style.stroke = strokeColor;
     g.appendChild(circle);
 
     // wrapped multi-line text that fits inside circle
@@ -219,6 +266,9 @@ function render() {
       "text"
     );
     textGroup.setAttribute("class", "node-text");
+    // Use contrasting text color - white for dark nodes, dark for light nodes
+    const textColor = isNodeDark ? '#fff' : '#1a1a1a';
+    textGroup.style.fill = textColor;
 
     // function: wrap words to fit circle width
     function wrapTextToCircle(text, maxWidth) {
@@ -295,10 +345,15 @@ function render() {
       makeIconGroup("+", ICON_SIZE, () => addChild(node.id), "add", 38)
     );
 
+    // color picker
+    icons.appendChild(
+      makeIconGroup("color", ICON_SIZE, () => openColorPicker(node.id), "color", 0)
+    );
+
     // delete (not for root)
     if (node.id !== currentMap.rootId) {
       icons.appendChild(
-        makeIconGroup("del", ICON_SIZE, () => deleteNode(node.id), "del")
+        makeIconGroup("del", ICON_SIZE, () => deleteNode(node.id), "del", -38)
       );
     }
 
@@ -311,7 +366,7 @@ function render() {
           ICON_SIZE,
           () => toggleCollapse(node.id),
           "collapse",
-          -38
+          -76
         )
       );
     }
@@ -391,10 +446,14 @@ function makeIconGroup(type, size, onClick, cls = "", dx = 0) {
       break;
     case "collapse":
       d = "M -4 -1 L 0 4 L 4 -1";
-      break; // minus
+      break;
     case "expand":
       d = "M -2 -4 L 3 0 L -2 4";
-      break; // plus for expand
+      break;
+    case "color":
+      d = "M -3 -2 C -3 -4 3 -4 3 -2 M -3 -2 C -3 3 3 3 3 -2 M 0 -2 V 3";
+      path.setAttribute("fill", "none");
+      break;
   }
   path.setAttribute("d", d);
   path.setAttribute("stroke-width", 2);
@@ -424,6 +483,7 @@ function addChild(parentId) {
     parent: parentId,
     children: [],
     collapsed: false,
+    color: p.color || DEFAULT_NODE_COLOR,
   };
   map.nodes[newId] = child;
   p.children.push(newId);
@@ -586,12 +646,31 @@ async function loadMapById(id) {
   render();
 }
 
+/* ---- Toolbar Menu Toggle ---- */
+const moreMenuBtn = document.getElementById("menuMoreBtn");
+const moreMenu = document.getElementById("moreMenu");
+
+moreMenuBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  moreMenu.classList.toggle("hidden");
+});
+
+document.addEventListener("click", (e) => {
+  if (!moreMenu.contains(e.target) && e.target !== moreMenuBtn) {
+    moreMenu.classList.add("hidden");
+  }
+});
+
 /* ---- UI wiring ---- */
 document.getElementById("newMapBtn").onclick = async () => {
   const name = prompt("New map name", "Untitled") || "Untitled";
   await newMap(name);
+  moreMenu.classList.add("hidden");
 };
-document.getElementById("saveMapBtn").onclick = () => saveCurrentMap();
+document.getElementById("saveMapBtn").onclick = () => {
+  saveCurrentMap();
+  moreMenu.classList.add("hidden");
+};
 document.getElementById("exportMapBtn").onclick = () => {
   const data = JSON.stringify(currentMap, null, 2);
   const blob = new Blob([data], { type: "application/json" });
@@ -600,6 +679,7 @@ document.getElementById("exportMapBtn").onclick = () => {
   a.download = (currentMap.name || "mindmap") + ".json";
   a.click();
   URL.revokeObjectURL(a.href);
+  moreMenu.classList.add("hidden");
 };
 document.getElementById("renameMapBtn").onclick = async () => {
   if (!currentMap) return;
@@ -607,13 +687,14 @@ document.getElementById("renameMapBtn").onclick = async () => {
   currentMap.name = n;
   await saveCurrentMap();
   setMapNameUI();
+  moreMenu.classList.add("hidden");
 };
 
 document.getElementById("deleteMapBtn").addEventListener("click", async () => {
   if (!currentMap) return;
   const ok = await showDeleteConfirm(
     "Delete Mindmap",
-    `Are you sure you want to permanently delete "${currentMap.name}"?`
+    `Delete "${currentMap.name}" permanently?`
   );
   if (!ok) return;
 
@@ -621,11 +702,25 @@ document.getElementById("deleteMapBtn").addEventListener("click", async () => {
   currentMap = null;
   svg.innerHTML = "";
   await refreshMapsList();
+  moreMenu.classList.add("hidden");
 });
 
-document.getElementById("mapsList").onchange = async (e) => {
-  if (e.target.value) await loadMapById(e.target.value);
-};
+// Maps dropdown toggle
+const mapsDropdownBtn = document.getElementById("mapsDropdownBtn");
+const mapsDropdownList = document.getElementById("mapsDropdownList");
+
+mapsDropdownBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  mapsDropdownList.classList.toggle("hidden");
+  mapsDropdownBtn.classList.toggle("active");
+});
+
+document.addEventListener("click", (e) => {
+  if (mapsDropdownList && !mapsDropdownList.contains(e.target) && e.target !== mapsDropdownBtn) {
+    mapsDropdownList.classList.add("hidden");
+    mapsDropdownBtn?.classList.remove("active");
+  }
+});
 
 svg.addEventListener("dblclick", (e) => {
   if (!currentMap) return;
@@ -664,7 +759,10 @@ document.addEventListener("selectstart", (e) => {
 const importMapBtn = document.getElementById("importMapBtn");
 const importMapFile = document.getElementById("importMapFile");
 
-importMapBtn.addEventListener("click", () => importMapFile.click());
+importMapBtn.addEventListener("click", () => {
+  importMapFile.click();
+  moreMenu.classList.add("hidden");
+});
 
 importMapFile.addEventListener("change", async (e) => {
   const file = e.target.files[0];
@@ -732,35 +830,223 @@ function showDeleteConfirm(title, message) {
   });
 }
 
-// 📱 Mobile menu toggle
-const mobileMenuToggle = document.getElementById("mobileMenuToggle");
-const mobileMenuPanel = document.getElementById("mobileMenuPanel");
+/* ---- Mobile Menu ---- */
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+const fabBtn = document.getElementById("fabBtn");
 
-mobileMenuToggle.addEventListener("click", () => {
-  const isOpen = mobileMenuPanel.classList.toggle("show");
-  mobileMenuToggle.textContent = isOpen ? "✕ Close" : "⚙️ Menu";
+mobileMenuBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  mobileMenu.classList.toggle("hidden");
 });
 
-// Optional: close menu when selecting an option
-mobileMenuPanel.addEventListener("click", (e) => {
-  if (e.target.tagName === "BUTTON" || e.target.tagName === "SELECT") {
-    mobileMenuPanel.classList.remove("show");
-    mobileMenuToggle.textContent = "⚙️ Menu";
+fabBtn?.addEventListener("click", () => {
+  mobileMenu.classList.toggle("hidden");
+});
+
+document.addEventListener("click", (e) => {
+  if (!mobileMenu.contains(e.target) && e.target !== mobileMenuBtn && e.target !== fabBtn) {
+    mobileMenu.classList.add("hidden");
   }
 });
 
-document.getElementById("newMapBtnMobile").onclick = () =>
+document.getElementById("newMapBtnMobile").onclick = () => {
   document.getElementById("newMapBtn").click();
-document.getElementById("saveMapBtnMobile").onclick = () =>
+  mobileMenu.classList.add("hidden");
+};
+document.getElementById("saveMapBtnMobile").onclick = () => {
   document.getElementById("saveMapBtn").click();
-document.getElementById("exportMapBtnMobile").onclick = () =>
+  mobileMenu.classList.add("hidden");
+};
+document.getElementById("exportMapBtnMobile").onclick = () => {
   document.getElementById("exportMapBtn").click();
-document.getElementById("importMapBtnMobile").onclick = () =>
+  mobileMenu.classList.add("hidden");
+};
+document.getElementById("importMapBtnMobile").onclick = () => {
   document.getElementById("importMapBtn").click();
-document.getElementById("renameMapBtnMobile").onclick = () =>
+  mobileMenu.classList.add("hidden");
+};
+document.getElementById("renameMapBtnMobile").onclick = () => {
   document.getElementById("renameMapBtn").click();
-document.getElementById("deleteMapBtnMobile").onclick = () =>
+  mobileMenu.classList.add("hidden");
+};
+document.getElementById("deleteMapBtnMobile").onclick = () => {
   document.getElementById("deleteMapBtn").click();
+  mobileMenu.classList.add("hidden");
+};
+
+/* ---- Keyboard Navigation ---- */
+document.addEventListener("keydown", (e) => {
+  if (!currentMap) return;
+  const nodes = Object.values(currentMap.nodes);
+  const currentId = selectedNodeId;
+  
+  // Arrow keys to navigate nodes
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+    if (!currentId) {
+      selectedNodeId = currentMap.rootId;
+      render();
+      return;
+    }
+    const current = currentMap.nodes[currentId];
+    if (!current) return;
+    
+    let targetId = null;
+    const direction = e.key.replace("Arrow", "");
+    
+    // Find closest node in direction
+    let closest = null;
+    let closestDist = Infinity;
+    
+    nodes.forEach(n => {
+      if (n.id === currentId) return;
+      const dx = n.x - current.x;
+      const dy = n.y - current.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      let isInDirection = false;
+      if (direction === "Right" && dx > 20 && Math.abs(dy) < Math.abs(dx)) isInDirection = true;
+      if (direction === "Left" && dx < -20 && Math.abs(dy) < Math.abs(dx)) isInDirection = true;
+      if (direction === "Down" && dy > 20 && Math.abs(dx) < Math.abs(dy)) isInDirection = true;
+      if (direction === "Up" && dy < -20 && Math.abs(dx) < Math.abs(dy)) isInDirection = true;
+      
+      if (isInDirection && dist < closestDist) {
+        closestDist = dist;
+        closest = n.id;
+      }
+    });
+    
+    if (closest) {
+      selectedNodeId = closest;
+      render();
+    }
+  }
+  
+  // Enter to edit selected node
+  if (e.key === "Enter" && selectedNodeId) {
+    e.preventDefault();
+    startEdit(selectedNodeId);
+  }
+  
+  // Delete to remove selected node
+  if (e.key === "Delete" && selectedNodeId && selectedNodeId !== currentMap.rootId) {
+    e.preventDefault();
+    deleteNode(selectedNodeId);
+  }
+  
+  // Escape to close color picker or deselect
+  if (e.key === "Escape") {
+    if (!colorPickerPopup.classList.contains("hidden")) {
+      colorPickerPopup.classList.add("hidden");
+    } else {
+      selectedNodeId = null;
+      render();
+    }
+  }
+  
+  // N for new node
+  if (e.key === "n" && !e.ctrlKey && !e.metaKey && !e.target.matches("input, textarea")) {
+    e.preventDefault();
+    if (selectedNodeId) {
+      addChild(selectedNodeId);
+    } else if (currentMap.rootId) {
+      addChild(currentMap.rootId);
+    }
+  }
+});
+
+/* ---- Node Click Selection ---- */
+svg.addEventListener("click", (e) => {
+  if (e.target === svg) {
+    selectedNodeId = null;
+    render();
+  }
+});
+
+/* ---- Theme Toggle ---- */
+const themeToggleBtn = document.getElementById("themeToggleBtn");
+const savedTheme = localStorage.getItem("mindmap-theme") || "dark";
+document.documentElement.setAttribute("data-theme", savedTheme);
+
+themeToggleBtn?.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme");
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("mindmap-theme", next);
+});
+
+/* ---- Color Picker Popup ---- */
+let colorPickerNodeId = null;
+const colorPickerPopup = document.getElementById("colorPickerPopup");
+const colorGrid = document.getElementById("colorGrid");
+
+function openColorPicker(nodeId) {
+  colorPickerNodeId = nodeId;
+  const node = currentMap.nodes[nodeId];
+  if (!node) return;
+  
+  colorGrid.innerHTML = "";
+  NODE_COLORS.forEach(color => {
+    const swatch = document.createElement("button");
+    swatch.className = "color-swatch" + (node.color === color ? " selected" : "");
+    swatch.style.backgroundColor = color;
+    swatch.addEventListener("click", () => selectNodeColor(color));
+    colorGrid.appendChild(swatch);
+  });
+  
+  // Position popup near the node
+  const nodeEl = svg.querySelector(`g[data-id="${nodeId}"]`);
+  if (nodeEl) {
+    const transform = nodeEl.getAttribute("transform");
+    const match = transform?.match(/translate\(([^,]+),([^)]+)\)/);
+    if (match) {
+      const x = parseFloat(match[1]);
+      const y = parseFloat(match[2]);
+      const pt = svg.createSVGPoint();
+      pt.x = x;
+      pt.y = y;
+      const ctm = svg.getScreenCTM();
+      const screenX = pt.matrixTransform(ctm).x;
+      const screenY = pt.matrixTransform(ctm).y;
+      
+      // Position below the node
+      let popupX = screenX - 90;
+      let popupY = screenY + 50;
+      
+      // Keep in viewport
+      popupX = Math.max(10, Math.min(window.innerWidth - 190, popupX));
+      popupY = Math.max(70, Math.min(window.innerHeight - 200, popupY));
+      
+      colorPickerPopup.style.left = popupX + "px";
+      colorPickerPopup.style.top = popupY + "px";
+    }
+  }
+  
+  colorPickerPopup.classList.remove("hidden");
+}
+
+function selectNodeColor(color) {
+  if (!colorPickerNodeId || !currentMap) return;
+  currentMap.nodes[colorPickerNodeId].color = color;
+  currentMap.updatedAt = Date.now();
+  saveCurrentMapDebounced();
+  colorPickerPopup.classList.add("hidden");
+  render();
+}
+
+document.getElementById("colorPickerClose")?.addEventListener("click", () => {
+  colorPickerPopup.classList.add("hidden");
+});
+
+// Close color picker when clicking outside
+document.addEventListener("click", (e) => {
+  if (!colorPickerPopup.classList.contains("hidden") && 
+      !colorPickerPopup.contains(e.target) && 
+      !e.target.closest(".node-icons")) {
+    colorPickerPopup.classList.add("hidden");
+  }
+});
 
 (async function init() {
   await refreshMapsList();

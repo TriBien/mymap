@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="color-scheme: dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -37,52 +37,75 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- 🌐 Responsive Toolbar -->
-    <!-- 🌐 Responsive Toolbar -->
+    <!-- Minimal Toolbar -->
     <div class="toolbar">
-      <!-- Desktop toolbar -->
+      <!-- Desktop -->
       <div class="toolbar-desktop">
         <span id="currentMapName" class="map-name">Untitled</span>
-        <div class="menu-items">
-          <button id="newMapBtn">＋ New</button>
-          <button id="saveMapBtn">💾 Save</button>
-          <button id="exportMapBtn">⬇️ Export</button>
-          <button id="importMapBtn">📂 Import</button>
-          <input
-            type="file"
-            id="importMapFile"
-            accept=".json"
-            style="display: none"
-          />
-          <button id="renameMapBtn">✏️ Rename</button>
-          <button id="deleteMapBtn" class="danger">🗑 Delete</button>
-          <select id="mapsList" title="Load saved map"></select>
+        <div class="toolbar-actions">
+          <button id="newMapBtn" class="tool-btn" aria-label="New map">New</button>
+          <button id="saveMapBtn" class="tool-btn" aria-label="Save map">Save</button>
+          <button id="menuMoreBtn" class="tool-btn icon-btn" aria-label="More options">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+          <button id="themeToggleBtn" class="tool-btn icon-btn" aria-label="Toggle theme">
+            <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
         </div>
       </div>
 
-      <!-- Mobile toolbar -->
-      <div class="toolbar-mobile">
-        <div class="mobile-header">
-          <span id="currentMapNameMobile" class="map-name">Untitled</span>
-          <button id="mobileMenuToggle" class="menu-toggle">⚙️ Menu</button>
-        </div>
-        <div id="mobileMenuPanel" class="mobile-menu hidden">
-          <button id="newMapBtnMobile">＋ New</button>
-          <button id="saveMapBtnMobile">💾 Save</button>
-          <button id="exportMapBtnMobile">⬇️ Export</button>
-          <button id="importMapBtnMobile">📂 Import</button>
-          <input
-            type="file"
-            id="importMapFileMobile"
-            accept=".json"
-            style="display: none"
-          />
-          <button id="renameMapBtnMobile">✏️ Rename</button>
-          <button id="deleteMapBtnMobile" class="danger">🗑 Delete</button>
-          <select id="mapsListMobile" title="Load saved map"></select>
+      <!-- Expanded menu (hidden) -->
+      <div id="moreMenu" class="toolbar-menu hidden">
+        <button id="exportMapBtn">Export</button>
+        <button id="importMapBtn">Import</button>
+        <button id="renameMapBtn">Rename</button>
+        <button id="deleteMapBtn" class="danger">Delete</button>
+        <div class="menu-divider"></div>
+        <div class="maps-dropdown" id="mapsDropdown">
+          <button class="maps-dropdown-btn" id="mapsDropdownBtn">
+            Open a map
+          </button>
+          <div class="maps-dropdown-list hidden" id="mapsDropdownList"></div>
         </div>
       </div>
+
+      <!-- Color Picker Popup (near node) -->
+      <div id="colorPickerPopup" class="color-picker-popup hidden">
+        <div class="color-picker-header">
+          <span>Color</span>
+          <button id="colorPickerClose" class="color-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="color-grid" id="colorGrid"></div>
+      </div>
+
+      <!-- Mobile -->
+      <div class="toolbar-mobile">
+        <span id="currentMapNameMobile" class="map-name">Untitled</span>
+        <button id="fabBtn" class="fab" aria-label="Add node">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Mobile Menu Panel -->
+      <div id="mobileMenu" class="mobile-panel hidden">
+        <button id="newMapBtnMobile">New map</button>
+        <button id="saveMapBtnMobile">Save</button>
+        <button id="exportMapBtnMobile">Export</button>
+        <button id="importMapBtnMobile">Import</button>
+        <button id="renameMapBtnMobile">Rename</button>
+        <button id="deleteMapBtnMobile" class="danger">Delete</button>
+        <div class="menu-divider"></div>
+        <select id="mapsListMobile" aria-label="Load saved map"><option value="">Load map...</option></select>
+      </div>
     </div>
+
+    <input type="file" id="importMapFile" accept=".json" hidden />
+    <input type="file" id="importMapFileMobile" accept=".json" hidden />
 
     <div class="mindmap-wrap" id="wrap">
       <svg id="svgRoot" xmlns="http://www.w3.org/2000/svg"></svg>
