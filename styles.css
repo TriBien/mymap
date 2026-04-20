@@ -409,9 +409,6 @@ svg {
 .edit-textarea:focus {
   border-color: var(--accent-hover);
 }
-  min-width: 140px;
-  box-shadow: 0 8px 32px var(--shadow-color);
-}
 
 /* Modal */
 .modal {
@@ -420,32 +417,42 @@ svg {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 300;
   opacity: 1;
-  transition: opacity 0.2s ease;
+  padding: 20px;
 }
 .modal.hidden {
   opacity: 0;
   pointer-events: none;
+  display: none;
+}
+.modal:not(.hidden) {
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 24px;
+  padding: 28px 32px;
   border-radius: 16px;
-  width: min(90vw, 320px);
+  width: 100%;
+  max-width: 320px;
   box-shadow: 0 16px 48px var(--shadow-color);
   text-align: center;
-  transform: translateY(0);
-  animation: popIn 0.2s ease;
+  animation: modalPop 0.25s ease;
 }
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
 
 .modal-content h2 {
   margin: 0 0 8px;
@@ -579,7 +586,7 @@ select:focus-visible {
   min-width: 180px;
 }
 .color-picker-popup:not(.hidden) {
-  animation: popIn 0.15s ease;
+  animation: modalPop 0.15s ease;
 }
 .color-picker-header {
   display: flex;
@@ -667,3 +674,4 @@ select:focus-visible {
 .btn-confirm:hover {
   background: var(--accent-hover);
 }
+
