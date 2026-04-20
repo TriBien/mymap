@@ -377,6 +377,7 @@ function render() {
     g.addEventListener("pointerdown", nodePointerDown);
     g.addEventListener("dblclick", (e) => {
       e.stopPropagation();
+      e.preventDefault();
       startEdit(node.id);
     });
 
@@ -572,19 +573,37 @@ function startEdit(nodeId) {
       saveCurrentMapDebounced();
     }
     textarea.remove();
-    if (oldTextElement) oldTextElement.style.visibility = "visible";
     render();
+    // Restore text visibility if still in DOM
+    const restoredText = svg.querySelector(`g[data-id="${node.id}"] text`);
+    if (restoredText) restoredText.style.visibility = "visible";
   }
 
-  textarea.addEventListener("blur", () => finish(true));
+  // Click outside to save
+  const finishEditOnBlur = (e) => {
+    setTimeout(() => {
+      if (document.body.contains(textarea)) {
+        finish(true);
+      }
+      document.removeEventListener("click", finishEditOnBlur, true);
+    }, 10);
+  };
+
   textarea.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") finish(false);
-    // Ctrl+Enter or Cmd+Enter to finish editing
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      finish(false);
+    }
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       finish(true);
     }
   });
+
+  // Listen for clicks outside the textarea
+  setTimeout(() => {
+    document.addEventListener("click", finishEditOnBlur, true);
+  }, 50);
 }
 
 /* ---- Dragging ---- */

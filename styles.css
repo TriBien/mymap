@@ -402,6 +402,13 @@ svg {
   background: var(--surface);
   color: var(--text);
   z-index: 200;
+  box-shadow: 0 8px 32px var(--shadow-color);
+  cursor: text;
+}
+
+.edit-textarea:focus {
+  border-color: var(--accent-hover);
+}
   min-width: 140px;
   box-shadow: 0 8px 32px var(--shadow-color);
 }
