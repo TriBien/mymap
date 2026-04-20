@@ -760,9 +760,12 @@ document.getElementById("deleteMapBtn").addEventListener("click", async () => {
   if (!ok) return;
 
   await idbDelete(currentMap.id);
-  currentMap = null;
-  svg.innerHTML = "";
   await refreshMapsList();
+  currentMap = createEmptyMap("Untitled");
+  ensureInitialPositions(currentMap);
+  setMapNameUI();
+  render();
+  showToast("Deleted successfully");
   moreMenu.classList.add("hidden");
 });
 
